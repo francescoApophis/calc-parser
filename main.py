@@ -4,25 +4,25 @@
 class Lexer:
     # get tokens
     # recognize which tokens mark the beginning of new tokens
-    def __init__(self, source_string):
-        self.source_string = source_string
+    def __init__(self, src_str):
+        self.src_str = source_string
         self.tokens = []
         
-    def tokenize(self, source_string, idx = 0):
-        if len(source_string) <= 1:
-            self.tokens.append(source_string)
+    def tokenize(self, src_str, idx = 0):
+        if len(src_str) <= 1:
+            self.tokens.append(src_str)
             return
         
-        if idx >= len(source_string): return 
+        if idx >= len(src_str): return 
 
-        curr_val = source_string[idx] 
+        curr_val = src_str[idx] 
         
         if self.is_digit(curr_val):
-            self.tokenize(source_string, idx + 1)
+            self.tokenize(src_str, idx + 1)
         else:
-            self.tokens.append(source_string[:idx]) # final number
-            self.tokens.append(source_string[idx]) # operator or parenthesis
-            self.tokenize(source_string[idx+1:], 0)
+            self.tokens.append(src_str[:idx]) # final number
+            self.tokens.append(src_str[idx]) # operator or parenthesis
+            self.tokenize(src_str[idx+1:], 0)
 
     def is_digit(self, value):
        return value not in ["+", "-", "*", "/", "(", ")", "^"] # they indicate start of new number
@@ -32,8 +32,8 @@ class Parser:
         pass
 
 
-source_string = "12*(3+4)^2"
+src_str = "12*(3+4)^2"
 
-lexer = Lexer(source_string)
-lexer.tokenize(lexer.source_string)
+lexer = Lexer(src_str)
+lexer.tokenize(lexer.src_str)
 print(lexer.tokens)
