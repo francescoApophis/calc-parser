@@ -12,3 +12,9 @@ class EmptyParenthesisError(Exception):
     def __init__(self, idx):
         self.message = f"Empty parenthesis at index '{idx}'" 
         super().__init__(self.message)
+
+class  OppositeParenthesisError(Exception):
+    def __init__(self, idx):
+        self.message = f"Opposite parenthesis with no operator between at index '{idx}'" 
+        super().__init__(self.message)
+ 
