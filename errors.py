@@ -4,8 +4,9 @@ class NoOperatorFoundError(Exception):
         super().__init__(self.message)
 
 class MissingOperandError(Exception):
-    def __init__(self, a, b ):
-        self.message = f"Missing operand between '{a}' and '{b}" 
+    def __init__(self, idx, a = None, b = None):
+        empty = ""
+        self.message = f"Missing operand between '{empty if a is None else a}' and '{empty if b is None else b}' at index {idx}" 
         super().__init__(self.message)
 
 class EmptyParenthesisError(Exception):
@@ -17,4 +18,5 @@ class  OppositeParenthesisError(Exception):
     def __init__(self, idx):
         self.message = f"Opposite parenthesis with no operator between at index '{idx}'" 
         super().__init__(self.message)
- 
+
+
