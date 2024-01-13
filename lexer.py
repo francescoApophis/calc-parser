@@ -34,24 +34,43 @@ class Lexer:
         return value not in ["+", "-", "*", "/", "(", ")", "^"] 
        
     def is_invalid(self, src_str):
-        src_str = src_str.replace(" ", "") 
-
-        try:
-            x = int(src_str[0])
-        except IndexError:  
-            print("IndexError: given string is empty\n")
-            raise
-        except ValueError:  # first char is anything but +,-, ( 
-            x = src_str[0]
-            if x in ["-", "("]:
-                pass
-            elif x in ["*", "/"]: 
-                raise MissingOperandError(0, b = x) 
-            elif x == ")":
-                raise MismatchedParenthesisError(0, 1),
-            elif x == "+":
-                src_str = src_str[1:]
+        src_str = src_str.replace(" ", "")   
         
+        #            empty or 1 char strings 
+        try:
+            if len(src_str) < 1:
+                raise IndexError("given string is empty") 
+            
+            elif len(src_str) == 1:
+                if src_str.isdigit():
+                    raise ValueError("string is a single number; no operation to perform") 
+                elif src_str in "+-*/()^":
+                    raise ValueError("no operands found; no operation to perform") 
+                else: 
+                    raise ValueError(f"invalid math symbol '{src_str}'; no operation to perform") 
+        except IndexError: raise
+        except ValueError: raise        
+        
+        #           multiple char strings 
+        try:
+            if set(src_str) < set("+-*/()^"): # if it's subset all chars are operators 
+                raise ValueError("no operand found; no operation to perform") 
+        except ValueError:
+            raise
+
+        for idx, c in enumerate(src_str):
+            try:
+                c_next = src_str[idx+1] if idx+1 < len(src_str)-1 else None
+                if not c.isdigit() and not c in "+-*/()^":  
+                    raise ValueError(f"invalid math symbol '{src_str}' at '{idx}'") 
+
+                if c in "+*/^-" and c_next != None and c_next in "+*/^)":
+                    raise MissingOperandError(idx, c, c_next) 
+
+            except ValueError: raise
+            except MissingOperandError: raise
+         
+        ''' 
         # unfinished expression  
         try: 
             if src_str[-1] in ["+", "*", "/", "^"]:
@@ -103,5 +122,7 @@ class Lexer:
                 raise MismatchedParenthesisError(a, b)
         except MismatchedParenthesisError:
             raise
-
+        '''
         self.src_str = src_str 
+
+
