@@ -36,7 +36,8 @@ class Lexer:
     def is_invalid(self, src_str):
         src_str = src_str.replace(" ", "")   
         
-        #            empty or 1 char strings 
+        #------------empty or 1 char strings------------ 
+
         try:
             if len(src_str) < 1:
                 raise IndexError("given string is empty") 
@@ -51,78 +52,70 @@ class Lexer:
         except IndexError: raise
         except ValueError: raise        
         
-        #           multiple char strings 
+        #------------multiple char strings------------
+
         try:
             if set(src_str) < set("+-*/()^"): # if it's subset all chars are operators 
                 raise ValueError("no operand found; no operation to perform") 
-        except ValueError:
-            raise
 
+            if src_str[0] in "/^*": # 
+                raise MissingOperandError(0, b = src_str[0]) 
+            elif src_str[0] == ")":
+                raise MismatchedParenthesisError(0, 1)
+            elif src_str[0] == "+":
+                if src_str.replace("+", "").isdigit():
+                    raise ValueError("string is a single number; no operation to perform") 
+                else:
+                    src = src_str.replace("+", "")
+                
+            elif src_str[0] in "-(": 
+                pass 
+            else:
+                pass # letters and other symbols are dealt with in the for loop below 
+            
+            # unfinished expression
+            if src_str[-1] in "+*/^-":
+                raise MissingOperandError(len(src_str)-1, a = src_str[-1])
+        except MissingOperandError: raise
+        except MismatchedParenthesisError: raise
+        except ValueError: raise 
+
+        
+        parenthesis_count = [0,0]
         for idx, c in enumerate(src_str):
             try:
                 c_next = src_str[idx+1] if idx+1 < len(src_str)-1 else None
                 if not c.isdigit() and not c in "+-*/()^":  
-                    raise ValueError(f"invalid math symbol '{src_str}' at '{idx}'") 
+                    raise ValueError(f"invalid math symbol '{c}' at '{idx}'") 
 
                 if c in "+*/^-" and c_next != None and c_next in "+*/^)":
                     raise MissingOperandError(idx, c, c_next) 
 
+                if c == "/" and c_next == '0':
+                    raise ZeroDivisionError
+                
+                if c == ")" and c_next == "(": 
+                    raise OppositeParenthesisError(idx)
+                
+                if c == "(" and c_next == ")":
+                    raise EmptyParenthesisError(idx)
+
+                if c == "(":
+                    parenthesis_count[0]+= 1
+                elif c == ")":
+                    parenthesis_count[1]+= 1
+                
             except ValueError: raise
             except MissingOperandError: raise
          
-        ''' 
-        # unfinished expression  
-        try: 
-            if src_str[-1] in ["+", "*", "/", "^"]:
-                raise MissingOperandError(idx = len(src_str)-1, a = src_str[-1])
-        except MissingOperandError:
-            raise
-
-        # string is just a single number
-        try:
-            if int(src_str):
-                raise NoOperatorFoundError 
-        except NoOperatorFoundError:
-            raise 
-        except ValueError:
-            pass 
-
-        parenthesis_count = [0,0]
-        for idx, c in enumerate(src_str):
-            try:
-                if idx+1 <= len(src_str)-1:
-                    c_next = src_str[idx+1]
-                    
-                    if c == "/" and c_next == '0':
-                        raise ZeroDivisionError
-                    if c in ["+", "*", "/", "^"] and c_next in ["+", "*", "/", "^", ")"]:
-                        raise MissingOperandError(c, c_next)
-                    if c == ")" and c_next == "(": 
-                        raise OppositeParenthesisError(idx)
-                    if c == "(" and c_next == ")":
-                        raise EmptyParenthesisError(idx)
-                    
-                    if c == "(":
-                        parenthesis_count[0]+= 1
-                    elif c == ")":
-                        parenthesis_count[1]+= 1
-
-            except ZeroDivisionError:
-                raise
-            except OppositeParenthesisError: 
-                raise
-            except MissingOperandError:
-                raise
-            except EmptyParenthesisError:
-                raise
-        
         try:
             a, b = parenthesis_count
             if a != b:
                 raise MismatchedParenthesisError(a, b)
         except MismatchedParenthesisError:
             raise
-        '''
+        
+
         self.src_str = src_str 
 
 
