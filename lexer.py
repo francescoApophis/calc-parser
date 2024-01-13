@@ -84,7 +84,7 @@ class Lexer:
         parenthesis_count = [0,0]
         for idx, c in enumerate(src_str):
             try:
-                c_next = src_str[idx+1] if idx+1 < len(src_str)-1 else None
+                c_next = src_str[idx+1] if idx+1 < len(src_str) else None
                 if not c.isdigit() and not c in "+-*/()^":  
                     raise ValueError(f"invalid math symbol '{c}' at '{idx}'") 
 
