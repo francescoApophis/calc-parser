@@ -15,11 +15,12 @@ class Parser:
          
         self.counter = 0
     
-    def increment_count(self): 
-        pass
+    def increment_counter(self): 
+        self.counter += 1 
     
     def parse_primary(self):   
-        pass                   
+        # returns the right hand side of an operator when one is meet
+        return self.tokens[self.counter + 1]
 
     def parse(self, lhs, min_prec):
         pass
