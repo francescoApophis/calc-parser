@@ -7,7 +7,7 @@ def calc_prec(op): # get precedence of operator
     elif op == '*' or op == '/':
         return 2
 
-def isOper(val):
+def is_oper(val):
     return val == '+' or val == '-' or val == '*' or val == '/'
 
 class Parser:
@@ -33,22 +33,14 @@ class Parser:
         return None 
 
     def parse(self, lhs, min_prec):
-        pass
-                
+        nt = self.peek()
+
+
+
 src_str = "45-23"
 parser = Parser(src_str)
 tokens = parser.tokens
 print("result: ", parser.parse(parser.tokens[0], 0))
-
-
-
-
-
-
-#            else:
-#                print(f"ALT: prec next: {self.op_prec(next_t)}, prec curr: {self.op_prec(op)}")
-
-
 
 
 
