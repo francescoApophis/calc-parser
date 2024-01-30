@@ -1,7 +1,7 @@
 from lexer import Lexer
 from testing import *
 
-def calc_prec(op):
+def calc_prec(op): # get precedence of operator
     if op == '+' or op == '-':
         return 1
     elif op == '*' or op == '/':
@@ -22,12 +22,12 @@ class Parser:
         self.counter += 1 
     
     def parse_primary(self):   
-        # returns the right hand side of an operator when one is meet
+        # returns the rhs of an operator when one is meet
         # 'primary' follows the naming on the wikipedia article about 
         # -- operator precedence parser --
         return self.tokens[self.counter + 1]
     
-    def peek(self):
+    def peek(self): # get next token
         if self.counter + 1 < len(self.tokens):
             return self.tokens[self.counter + 1]
         return None 
