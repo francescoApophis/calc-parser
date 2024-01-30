@@ -38,7 +38,7 @@ class Parser:
 src_str = "45-23"
 parser = Parser(src_str)
 tokens = parser.tokens
-print("result: ", parser.parse_expr(parser.tokens[0], 0))
+print("result: ", parser.parse(parser.tokens[0], 0))
 
 
 
