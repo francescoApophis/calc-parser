@@ -55,6 +55,8 @@ class Lexer:
         #------------multiple char strings------------
 
         try:
+            if src_str.isdigit():
+                raise ValueError("string is a single number; no operation to perform")
             if set(src_str) < set("+-*/()^"): # if it's subset all chars are operators 
                 raise ValueError("no operand found; no operation to perform") 
 
@@ -117,5 +119,5 @@ class Lexer:
         
 
         self.src_str = src_str 
-
+lexer = Lexer('45')
 
