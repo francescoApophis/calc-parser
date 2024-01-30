@@ -31,6 +31,16 @@ class Parser:
         if self.counter + 1 < len(self.tokens):
             return self.tokens[self.counter + 1]
         return None 
+        
+    def calculate(self, lhs, op, rhs):
+        if op == '+':
+            return int(lhs) + int(rhs)
+        elif op == '-':
+            return int(lhs) - int(rhs)
+        elif op == '*':
+            return int(lhs) * int(rhs)
+        elif op == '/':
+            return int(lhs) / int(rhs)
 
     def parse(self, lhs, min_prec):
         nt = self.peek()
@@ -47,17 +57,8 @@ class Parser:
                 prec =  calc_prec(op) + 1 if calc_prec(nt) > calc_prec(op) else 0
                 rhs = self.parse(rhs, prec)
                 nt = self.peek()
-            
-            
-            print(lhs, rhs)
-            if op == '+':
-                lhs = int(lhs) + int(rhs)
-            elif op == '-':
-                lhs = int(lhs) - int(rhs)
-            elif op == '*':
-                lhs = int(lhs) * int(rhs)
-            elif op == '/':
-                lhs = int(lhs) / int(rhs)
+            print(lhs, op, rhs) 
+            lhs = self.calculate(lhs, op, rhs)
 
         return lhs
         
