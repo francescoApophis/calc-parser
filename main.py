@@ -1,5 +1,6 @@
 from lexer import Lexer
 from testing import *
+import sys
 
 def calc_prec(op): # get precedence of operator
     if op == '+' or op == '-':
@@ -15,7 +16,7 @@ class Parser:
         self.lexer = Lexer(src_str)
         self.lexer.tokenize(src_str)
         self.tokens = self.lexer.tokens
-         
+
         self.counter = 0
     
     def increment_counter(self): 
@@ -33,15 +34,21 @@ class Parser:
         return None 
         
     def calculate(self, lhs, op, rhs):
-        if op == '+':
-            return int(lhs) + int(rhs)
-        elif op == '-':
-            return int(lhs) - int(rhs)
-        elif op == '*':
-            return int(lhs) * int(rhs)
-        elif op == '/':
-            return int(lhs) / int(rhs)
+        if isinstance(lhs, str):
+            lhs = int(lhs)
 
+        if isinstance(rhs, str):
+            rhs = int(rhs)
+
+        if op == '+':
+            return lhs + rhs
+        elif op == '-':
+            return lhs - rhs
+        elif op == '*':
+            return lhs * rhs
+        elif op == '/':
+            return lhs / rhs
+        
     def parse(self, lhs, min_prec):
         nt = self.peek()
 
@@ -57,13 +64,12 @@ class Parser:
                 prec =  calc_prec(op) + 1 if calc_prec(nt) > calc_prec(op) else 0
                 rhs = self.parse(rhs, prec)
                 nt = self.peek()
-            print(lhs, op, rhs) 
-            lhs = self.calculate(lhs, op, rhs)
 
+            lhs = self.calculate(lhs, op, rhs)
         return lhs
         
 
-src_str = "7 + 2 * 3 + 1 / 10"
+src_str = "5 - 7 * 3 + 2 / 4 * 6 - 5 - 4"
 parser = Parser(src_str)
 tokens = parser.tokens
 print("result: ", parser.parse(parser.tokens[0], 0))
