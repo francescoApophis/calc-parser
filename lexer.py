@@ -119,5 +119,4 @@ class Lexer:
         
 
         self.src_str = src_str 
-lexer = Lexer('45')
 
