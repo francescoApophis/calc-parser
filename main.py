@@ -1,19 +1,45 @@
 from lexer import Lexer
 from testing import *
 
+class Tree:
+    def __init__(self, op = None, lhs = None, rhs = None):
+        self.op = op
+        self.lhs = lhs
+        self.rhs = rhs
 
 class Parser:
-    def __init__(self):
+    def __init__(self, src_str):
+        self.lexer = Lexer(src_str)
+        self.lexer.tokenize(src_str)
+        self.tokens = self.lexer.tokens
+         
+        self.counter = 0
+    
+    def increment_count(self): 
         pass
+    
+    def parse_primary(self):   
+        pass                   
 
-src_str = "45-(45-23*39)-3-45/0"
-lexer = Lexer(src_str)
-lexer.tokenize(lexer.src_str)
-print(lexer.tokens)
+    def parse(self, lhs, min_prec):
+        pass
+                
+src_str = "45-23"
+parser = Parser(src_str)
+tokens = parser.tokens
+print("result: ", parser.parse_expr(parser.tokens[0], 0))
 
-'''
-if __name__ == '__main__':
-    unittest.main(verbosity = 2 )
-'''
+
+
+
+
+
+#            else:
+#                print(f"ALT: prec next: {self.op_prec(next_t)}, prec curr: {self.op_prec(op)}")
+
+
+
+
+
 
 
