@@ -1,11 +1,14 @@
 from lexer import Lexer
 from testing import *
 
-class Tree:
-    def __init__(self, op = None, lhs = None, rhs = None):
-        self.op = op
-        self.lhs = lhs
-        self.rhs = rhs
+def calc_prec(op):
+    if op == '+' or op == '-':
+        return 1
+    elif op == '*' or op == '/':
+        return 2
+
+def isOper(val):
+    return val == '+' or val == '-' or val == '*' or val == '/'
 
 class Parser:
     def __init__(self, src_str):
@@ -20,7 +23,14 @@ class Parser:
     
     def parse_primary(self):   
         # returns the right hand side of an operator when one is meet
+        # 'primary' follows the naming on the wikipedia article about 
+        # -- operator precedence parser --
         return self.tokens[self.counter + 1]
+    
+    def peek(self):
+        if self.counter + 1 < len(self.tokens):
+            return self.tokens[self.counter + 1]
+        return None 
 
     def parse(self, lhs, min_prec):
         pass
