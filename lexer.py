@@ -10,9 +10,10 @@ class Lexer:
         self.is_invalid(src_str)
         self.src_str = src_str 
         self.tokens = []
+        self.tokenize(self.src_str)
 
     def tokenize(self, src_str, idx = 0):
-        if len(src_str) <= 1:
+        if len(src_str) == 1:
             self.tokens.append(src_str)
             return
 
@@ -117,12 +118,3 @@ class Lexer:
         except MismatchedParenthesisError:
             raise
         
-
-        #  self.src_str = src_str 
-
-
-
-
-l = Lexer('3+2')
-l.tokenize(l.src_str)
-print(l.tokens)
