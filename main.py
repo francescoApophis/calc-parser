@@ -1,6 +1,5 @@
 from lexer import Lexer
 from testing import *
-import sys
 
 def calc_prec(op): # get precedence of operator
     if op == '+' or op == '-':
@@ -14,7 +13,6 @@ def is_oper(val):
 class Parser:
     def __init__(self, src_str):
         self.lexer = Lexer(src_str)
-        self.lexer.tokenize(src_str)
         self.tokens = self.lexer.tokens
 
         self.counter = 0
@@ -39,7 +37,7 @@ class Parser:
 
         if isinstance(rhs, str):
             rhs = int(rhs)
-
+        
         if op == '+':
             return lhs + rhs
         elif op == '-':
@@ -64,15 +62,14 @@ class Parser:
                 prec =  calc_prec(op) + 1 if calc_prec(nt) > calc_prec(op) else 0
                 rhs = self.parse(rhs, prec)
                 nt = self.peek()
-
+            
             lhs = self.calculate(lhs, op, rhs)
         return lhs
         
-
-src_str = "5 - 7 * 3 + 2 / 4 * 6 - 5 - 4"
-parser = Parser(src_str)
-tokens = parser.tokens
-print("result: ", parser.parse(parser.tokens[0], 0))
+if __name__ == '__main__':
+    src_str = ""
+    parser = Parser(src_str)
+    print("result:", parser.parse(parser.tokens[0], 0))
 
 
 
