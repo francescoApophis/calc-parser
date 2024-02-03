@@ -67,7 +67,7 @@ class Parser:
         return lhs
         
 if __name__ == '__main__':
-    src_str = ""
+    src_str = "" # insert expression
     parser = Parser(src_str)
     print("result:", parser.parse(parser.tokens[0], 0))
 
