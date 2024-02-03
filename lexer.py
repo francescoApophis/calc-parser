@@ -7,8 +7,7 @@ class Lexer:
     # recognize which tokens mark the beginning of new tokens
 
     def __init__(self, src_str):
-        self.is_invalid(src_str)
-        self.src_str = src_str 
+        self.src_str = self.is_invalid(src_str) 
         self.tokens = []
         self.tokenize(self.src_str)
 
@@ -20,6 +19,7 @@ class Lexer:
         if idx >= len(src_str): return 
 
         curr_val = src_str[idx]
+
         if self.is_digit(curr_val):
             if len(self.tokens) > 0 and self.is_digit(self.tokens[-1]): 
                 self.tokens[-1] += curr_val
@@ -117,4 +117,8 @@ class Lexer:
                 raise MismatchedParenthesisError(a, b)
         except MismatchedParenthesisError:
             raise
-        
+       
+        return src_str
+
+l = Lexer('1+(3*3)')
+print(l.tokens)
