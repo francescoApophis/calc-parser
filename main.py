@@ -3,8 +3,6 @@ from testing import *
 from typing import Union
 
 
-
-
 class Parser:
     def __init__(self, src_str:str) -> None:
         self.tokens:list = Lexer(src_str).tokens
@@ -90,24 +88,22 @@ class Parser:
                 nt = self.peek()
 
             lhs = {
-                    'lhs': int(lhs) if type(lhs) == str else lhs,
-                    'op': op, 
-                    'rhs': int(rhs) if type(rhs) == str else rhs,
-                    }
+                'lhs': int(lhs) if type(lhs) == str else lhs,
+                'op': op, 
+                'rhs': int(rhs) if type(rhs) == str else rhs,
+            }
+
         return lhs 
 
 
 if __name__ == '__main__':
-    src_str = '8 - 39 / 331'
+    src_str = '8 - 39 / 331 - 19'
     parser = Parser(src_str)
-
     root_node = parser.gen_ast(parser.tokens[0])
+    parser.counter = 0
 
     print('result from node:', parser.calc_from_ast(root_node))
-
-    parser.counter = 0
     print('result from alg: ', parser.parse_and_calc(parser.tokens[0]))
-
 
 
 
