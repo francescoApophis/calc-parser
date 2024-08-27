@@ -1,12 +1,24 @@
 from lexer import Lexer
 from testing import *
 from typing import Union
+import sys
 
 
 class Parser:
-    def __init__(self, src_str:str) -> None:
+    def __init__(self, src_str:str, flag: str) -> None:
         self.tokens:list = Lexer(src_str).tokens
         self.counter:int = 0
+        self.start(flag)
+
+    def start(self, flag: str):
+        if flag == '-c':
+            print('result:', self.parse_and_calc(self.tokens[0]))
+        elif flag == '-t':
+            print('tree:', self.gen_ast(self.tokens[0]))
+        elif flag == '-tc':
+            print('result:', self.parse_and_calc(self.tokens[0]))
+            self.counter = 0
+            print('tree:', self.gen_ast(self.tokens[0]))
 
     def calc_prec(self, op: str) -> int: # get precedence of operator
         if op == '+' or op == '-':
@@ -16,7 +28,6 @@ class Parser:
 
     def is_oper(self, token: str) -> bool:
         return token == '+' or token == '-' or token == '*' or token == '/'
-
     
     def increment_counter(self) -> None: 
         self.counter += 1 
@@ -96,17 +107,40 @@ class Parser:
         return lhs 
 
 
+def print_usage():
+    print(''' Usage: 
+    python3 main.py <flag> <expr>
+    python3 main.py <flag> '<expr>' (use quotes to use spacing between characters)
+    
+    flags:
+    -c calculate expression and print result
+    -t generate and print tree from expression 
+    ''')
+
+
 if __name__ == '__main__':
-    src_str = '8 - 39 / 331 - 19'
-    parser = Parser(src_str)
-    root_node = parser.gen_ast(parser.tokens[0])
-    parser.counter = 0
+    if len(sys.argv) < 2:
+        print('ERROR: missing flag')
+        print_usage()
+        exit(1)
 
-    print('result from node:', parser.calc_from_ast(root_node))
-    print('result from alg: ', parser.parse_and_calc(parser.tokens[0]))
-
-
-
+    flag = sys.argv[1]
+        
+    if flag == '-h' :
+        print_usage()
+        exit(1)
+    elif flag == '-c' or flag == '-t' or flag == '-tc':
+        if len(sys.argv) == 3:
+            expr = sys.argv[2]
+            parser = Parser(expr, flag)
+        else:
+            print('ERROR: missing expression')
+            print_usage()
+            exit(1)
+    else:
+        print(f'ERROR: invalid "{flag}" flag')
+        print_usage()
+        exit(1)
 
 
 
