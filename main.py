@@ -10,11 +10,16 @@ def calc_prec(op): # get precedence of operator
 def is_oper(val):
     return val == '+' or val == '-' or val == '*' or val == '/'
 
+class Node:
+    def __init__(self, lhs = None, op = None, rhs = None):
+        self.lhs = lhs 
+        self.op  = op 
+        self.rhs = rhs 
+
 class Parser:
     def __init__(self, src_str):
         self.lexer = Lexer(src_str)
         self.tokens = self.lexer.tokens
-
         self.counter = 0
     
     def increment_counter(self): 
@@ -31,13 +36,7 @@ class Parser:
             return self.tokens[self.counter + 1]
         return None 
         
-    def calculate(self, lhs, op, rhs):
-        if isinstance(lhs, str):
-            lhs = int(lhs)
-
-        if isinstance(rhs, str):
-            rhs = int(rhs)
-        
+    def calc(self, lhs, op, rhs):
         if op == '+':
             return lhs + rhs
         elif op == '-':
@@ -46,8 +45,16 @@ class Parser:
             return lhs * rhs
         elif op == '/':
             return lhs / rhs
+
+    def calc_from_ast(self, node):
+        lhs = node['lhs'] if not isinstance(node['lhs'], dict) else self.calc_from_ast(node['lhs'])
+        rhs = node['rhs'] if not isinstance(node['rhs'], dict) else self.calc_from_ast(node['rhs'])
+        op = node['op']
+
+        return self.calc(lhs, op, rhs)
+
         
-    def parse(self, lhs, min_prec):
+    def parse_and_calc(self, lhs, min_prec = 0):
         nt = self.peek()
 
         while nt is not None and is_oper(nt) and calc_prec(nt) >= min_prec:
@@ -60,45 +67,49 @@ class Parser:
             # get result of the operation ahead *FIRST* if the the operator has higher precedence
             while nt is not None and is_oper(nt) and calc_prec(nt) > calc_prec(op):
                 new_min_prec =  calc_prec(op) + 1 if calc_prec(nt) > calc_prec(op) else 0
-                rhs = self.parse(rhs, new_min_prec)
+                rhs = self.parse_and_calc(rhs, new_min_prec)
                 nt = self.peek()
             
-            lhs = self.calculate(lhs, op, rhs)
+            lhs = int(lhs) if isinstance(lhs, str) else lhs
+            rhs = int(rhs) if isinstance(rhs, str) else rhs
+            lhs = self.calc(lhs, op, rhs)
         return lhs
 
-    def generate_ast(self,lhs, min_prec = 0, higher = False):
 
+    def gen_ast(self, lhs:str, min_prec:int = 0) -> dict:
         nt = self.peek()
+
         while nt is not None and is_oper(nt) and calc_prec(nt) >= min_prec:
             op = nt 
             self.increment_counter()
             rhs = self.parse_primary()
             self.increment_counter()
             nt = self.peek()
-            
-            lhs['op'] = op
-            lhs['rhs'] = rhs
-            
-            while nt is not None and is_oper(nt):
-                if calc_prec(nt) > calc_prec(op):
-                    new_min_prec = calc_prec(op) + 1 if calc_prec(nt) > calc_prec(op) else 0 
-                    rhs = self.generate_ast({'lhs':rhs}, new_min_prec, True)
-                    lhs['rhs'] = rhs
-                    nt = self.peek()
-                else:
-                    higher = False
-                    break
 
-            if nt is not None and calc_prec(nt) <= calc_prec(op) and not higher:
-                node_copy = lhs 
-                lhs = {'lhs': node_copy}
-            
-        return lhs
-        
+            while nt is not None and is_oper(nt) and calc_prec(nt) > calc_prec(op):
+                new_min_prec =  calc_prec(op) + 1 if calc_prec(nt) > calc_prec(op) else 0
+                rhs = self.gen_ast(rhs, new_min_prec)
+                nt = self.peek()
+
+            lhs_val = int(lhs) if type(lhs) == str else lhs
+            rhs = int(rhs) if type(rhs) == str else rhs
+            lhs = {'lhs': lhs_val, 'op': op, 'rhs':rhs}
+        return lhs 
+                
+
 if __name__ == '__main__':
-    src_str = "1 / 7 * 4 + 3 / 6 * 5 - 7 " # insert expression
+    src_str = '8 * 7 - 200 /1003423'
     parser = Parser(src_str)
-    print("result:", parser.parse(parser.tokens[0], 0))
+
+    root_node = parser.gen_ast(parser.tokens[0])
+    print('result from node:', parser.calc_from_ast(root_node))
+
     parser.counter = 0
-    print("AST:", parser.generate_ast({'lhs': parser.tokens[0]}, 0))
+    print('result from alg: ', parser.parse_and_calc(parser.tokens[0]))
+
+
+
+
+
+
 
