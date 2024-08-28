@@ -1,6 +1,6 @@
 from lexer import Lexer
-from testing import *
 from typing import Union
+from errors import *
 import sys
 
 
@@ -11,14 +11,33 @@ class Parser:
         self.start(flag)
 
     def start(self, flag: str):
+        # calculate result from string
         if flag == '-c':
             print('result:', self.parse_and_calc(self.tokens[0]))
+
+        # generate a tree 
         elif flag == '-t':
             print('tree:', self.gen_ast(self.tokens[0]))
+
+        # calculate result from string and generate a tree 
         elif flag == '-tc':
             print('result:', self.parse_and_calc(self.tokens[0]))
             self.counter = 0
             print('tree:', self.gen_ast(self.tokens[0]))
+
+        # calculate result from ast 
+        elif flag == '-ct':
+            print('result from ast:', calc_from_ast(self.gen_ast(self.tokens[0])))
+
+        elif flag == '-all':
+            tree = self.gen_ast(self.tokens[0])
+            print('tree:', tree)
+            self.counter = 0
+            print('result from str:', self.parse_and_calc(self.tokens[0]))
+            self.counter = 0
+            print('result from ast:', self.calc_from_ast(tree))
+
+
 
     def calc_prec(self, op: str) -> int: # get precedence of operator
         if op == '+' or op == '-':
@@ -107,40 +126,61 @@ class Parser:
         return lhs 
 
 
-def print_usage():
-    print(''' Usage: 
+def print_descr():
+    print(''' Small parser for simple math expressions.
+    Supported:
+        - addition, subtraction, multiplication and division
+    Soon to be implemented:
+        - negative and decimal numbers
+        - parentheses 
+        - exponentiation
+    ''')
+
+
+def print_usage(help: Union[bool, None] = None):
+    if help:
+        print_descr()
+    print('''Usage: 
     python3 main.py <flag> <expr>
-    python3 main.py <flag> '<expr>' (use quotes to use spacing between characters)
+    python3 main.py <flag> '<expr>' (to use spacing inside the expression)
     
     flags:
-    -c calculate expression and print result
-    -t generate and print tree from expression 
+        -c   calculate and print result from string expression
+        -t   generate and print tree from expression 
+        -tc  both previous flags
+        -ct  calculate and print result from tree expression (mainly for 
+             debugging tree)
+        -all all commands at the same time
     ''')
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print('ERROR: missing flag')
+    argv = sys.argv[1:]
+
+    if not argv:
+        print('ERROR: too few arguments')
         print_usage()
         exit(1)
 
-    flag = sys.argv[1]
-        
-    if flag == '-h' :
+    if len(argv) > 2:
+        print('ERROR: too many arguments')
         print_usage()
         exit(1)
-    elif flag == '-c' or flag == '-t' or flag == '-tc':
-        if len(sys.argv) == 3:
-            expr = sys.argv[2]
+
+    flag = argv[0]
+
+    if flag == '-h':
+        print_usage(True)
+        exit(0)
+    if flag in ['-c', '-t', '-tc', '-ct', '-all']:
+        if len(argv) == 2: 
+            expr = argv[1]
             parser = Parser(expr, flag)
         else:
             print('ERROR: missing expression')
             print_usage()
             exit(1)
     else:
-        print(f'ERROR: invalid "{flag}" flag')
+        print(f'ERROR: invalid \'{flag}\' flag')
         print_usage()
         exit(1)
-
-
-
