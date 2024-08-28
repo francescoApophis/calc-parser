@@ -36,89 +36,46 @@ class Lexer:
        
     def is_invalid(self, src_str):
         src_str = src_str.replace(" ", "")   
-        
-        #------------empty or 1 char strings------------ 
 
-        try:
-            if len(src_str) < 1:
-                raise IndexError("given string is empty") 
-            
-            elif len(src_str) == 1:
-                if src_str.isdigit():
-                    raise ValueError("string is a single number; no operation to perform") 
-                elif src_str in "+-*/()^":
-                    raise ValueError("no operands found; no operation to perform") 
-                else: 
-                    raise ValueError(f"invalid math symbol '{src_str}'; no operation to perform") 
-        except IndexError: raise
-        except ValueError: raise        
-        
-        #------------multiple char strings------------
+        if len(src_str) <= 2 or (len(src_str) <= 3 and src_str[0] == '-'): 
+            NotEnoughErr('operands/operators')
 
-        try:
-            if src_str.isdigit():
-                raise ValueError("string is a single number; no operation to perform")
-            if set(src_str) < set("+-*/()^"): # if it's subset all chars are operators 
-                raise ValueError("no operand found; no operation to perform") 
+        if set(src_str) < set("+-*/()^"): NotEnoughErr('operands')
+        if src_str[0] in '-': NotImplementedErr('negative numbers')
+        if src_str[0] in '/^*': NotEnoughErr('operands', 0, src_str)
+        if src_str[-1] in "+*/^-": NotEnoughErr('operands', len(src_str)-1, src_str)
+        if src_str[0] in '-': NotImplementedErr('negative numbers') 
+        if src_str[0] == '+': 
+            src_str = src_str.replace('+', '', 1)
+            src_str = self.is_invalid(src_str)
 
-            if src_str[0] in "/^*": # 
-                raise MissingOperandError(0, b = src_str[0]) 
-            elif src_str[0] == ")":
-                raise MismatchedParenthesisError(0, 1)
-            elif src_str[0] == "+":
-                if src_str.replace("+", "").isdigit():
-                    raise ValueError("string is a single number; no operation to perform") 
-                else:
-                    src = src_str.replace("+", "")
-                
-            elif src_str[0] in "-(": 
-                pass 
-            else:
-                pass # letters and other symbols are dealt with in the for loop below 
-            
-            # unfinished expression
-            if src_str[-1] in "+*/^-":
-                raise MissingOperandError(len(src_str)-1, a = src_str[-1])
-        except MissingOperandError: raise
-        except MismatchedParenthesisError: raise
-        except ValueError: raise 
-
-        
-        parenthesis_count = [0,0]
+        # op_count = 0 #open parenthesis 
+        # cp_count = 0 #close parenthesis 
         for idx, c in enumerate(src_str):
-            try:
-                c_next = src_str[idx+1] if idx+1 < len(src_str) else None
-                if not c.isdigit() and not c in "+-*/()^":  
-                    raise ValueError(f"invalid math symbol '{c}' at '{idx}'") 
+            next_c = src_str[idx+1] if idx+1 < len(src_str) else None
 
-                if c in "+*/^-" and c_next != None and c_next in "+*/^)":
-                    raise MissingOperandError(idx, c, c_next) 
+            if not c.isdigit() and not c in "+-*/()^":  
+                InvalidSymErr(c, idx, src_str)
+            if c in "+*/^-" and next_c in "+*/^)":
+                NotEnoughErr('operands', idx, src_str)
+            if c in "+*/^-" and next_c == "-":
+                NotImplementedErr('negative numbers')
+            if c == "/" and next_c == '0':
+                NotSupportedErr('zero division')
+            if c == '(' or c == ')':
+                NotImplementedErr('parentheses')
 
-                if c == "/" and c_next == '0':
-                    raise ZeroDivisionError
-                
-                if c == ")" and c_next == "(": 
-                    raise OppositeParenthesisError(idx)
-                
-                if c == "(" and c_next == ")":
-                    raise EmptyParenthesisError(idx)
+            # support for parentheses to be implemented yet
+            # if c == ")" and next_c == "(": 
+                # ParenthesesErr('operator', idx, src_str)
+            # if c == "(" and next_c == ")":
+                # ParenthesesErr('expression', idx, src_str)
 
-                if c == "(":
-                    parenthesis_count[0]+= 1
-                elif c == ")":
-                    parenthesis_count[1]+= 1
-                
-            except ValueError: raise
-            except MissingOperandError: raise
-         
-        try:
-            a, b = parenthesis_count
-            if a != b:
-                raise MismatchedParenthesisError(a, b)
-        except MismatchedParenthesisError:
-            raise
-       
+            # if c == "(": op_count += 1
+            # elif c == ")": cp_count += 1
+
+        # parenthesis = "(" if op_count > cp_count else ")"
+        # amount = op_count - cp_count if op_count > cp_count else cp_count - op_count 
+        # if a != b: MismatchedParenthesesError(parenthesis, amount)
         return src_str
 
-l = Lexer('1+(3*3)')
-print(l.tokens)

@@ -1,30 +1,46 @@
-class NoOperatorFoundError(Exception):
-    def __init__(self):
-        self.message = "Input is just number, no operation to perform"
-        super().__init__(self.message)
-
-class MissingOperandError(Exception):
-    def __init__(self, idx, a = None, b = None):
-        empty = ""
-        # a/b are none if except occurred at either start or end of str
-        self.message = f"Missing operand between '{empty if a is None else a}' and '{empty if b is None else b}' at index {idx}" 
-        super().__init__(self.message)
-
-class EmptyParenthesisError(Exception):
-    def __init__(self, idx):
-        self.message = f"Empty parenthesis at index '{idx}'" 
-        super().__init__(self.message)
-
-class  OppositeParenthesisError(Exception):
-    def __init__(self, idx):
-        self.message = f"Opposite parenthesis with no operator between at index '{idx}'" 
-        super().__init__(self.message)
+from typing import Union
 
 
-class MismatchedParenthesisError(Exception):
-    def __init__(self, a, b):
-        type_par = "(" if a > b else ")"
-        excess_par = a-b if a > b else b - a
-        self.message = f"Mismatched parenthesis: {excess_par} too many '{type_par}' parenthesis" 
-        super().__init__(self.message)
 
+class Err:
+    def __init__(self, msg: str) -> None:
+        self.msg = msg
+        self.report()
+    def report(self):
+        print('ERROR:', self.msg)
+        exit(1)
+
+class NotEnoughErr(Err):
+    def __init__(self, what:str, idx:Union[int, None] = None, expr:Union[str, None] = None) -> None:
+        arrow = " " * (idx + 1) + "^" if idx is not None else ""
+        location = f"at index: {idx}\n'{expr}'\n{arrow}" if idx is not None else ""
+
+        self.msg = f"Not enough {what} " + location
+        super().__init__(self.msg)
+
+class NotImplementedErr(Err):
+    def __init__(self, what:str) -> None:
+        self.msg = f"{what.capitalize()} not implemented yet"
+        super().__init__(self.msg)
+
+class NotSupportedErr(Err):
+    def __init__(self, what: str) -> None:
+        self.msg = f"{what.capitalize()} not supported"
+        super().__init__(self.msg)
+
+class InvalidSymErr(Err):
+    def __init__(self, what: str, idx:int, expr: str) -> None:
+        arrow = " " * (idx + 1) + "^"
+        self.msg = f"Invalid symbol '{what}' at index: {idx}\n'{expr}'\n{arrow}"
+        super().__init__(self.msg)
+
+class ParenthesesErr(Err):
+    def __init__(self, what:str, idx:int, expr: str) -> None:
+        arrow = " " * (idx + 1) + "^"
+        self.msg = f"No {what} between parentheses at index: {idx}\n'{expr}'\n{arrow}"
+        super().__init__(self.msg)
+
+class MismatchedParentheses(Err):
+    def __init__(self, parenthesis: str, amount:int) -> None:
+        self.msg = f"Mismatched  parenthesis, {amount} too many '{parenthesis}'"
+        super().__init__(self.msg)
