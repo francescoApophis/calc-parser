@@ -1,21 +1,23 @@
 
 # calc-parser
 
-Small parser for simple math expressions. Built to learn about 
+Small parser for simple math expressions. Built to learn about how 
 lexing, parsing and operator precendence work.
 
 It uses the '[precedence climbing method](https://en.wikipedia.org/wiki/Operator-precedence_parser)'.
+Again, this is for learning purposes and to get a general idea of how this process works, so it may not
+use the best algorithm or the best implentation. 
 
 Supported:
-- addition, 
-- subtraction, 
-- multiplication
-- division
+- [x] addition, 
+- [x] subtraction, 
+- [x] multiplication
+- [x] division
 
 Soon to be implemented:
-- negative and decimal numbers
-- parentheses 
-- exponentiation
+- [ ] negative and decimal numbers
+- [ ] parentheses 
+- [ ] exponentiation
 
 ## Usage
 
