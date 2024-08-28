@@ -56,6 +56,8 @@ class Lexer:
 
             if not c.isdigit() and not c in "+-*/()^":  
                 InvalidSymErr(c, idx, src_str)
+            if c.isdigit() and next_c == '.':
+                NotImplementedErr('decimal numbers')
             if c in "+*/^-" and next_c in "+*/^)":
                 NotEnoughErr('operands', idx, src_str)
             if c in "+*/^-" and next_c == "-":
