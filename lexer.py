@@ -45,12 +45,13 @@ class Lexer:
         if src_str[0] in '/^*': NotEnoughErr('operands', 0, src_str)
         if src_str[-1] in "+*/^-": NotEnoughErr('operands', len(src_str)-1, src_str)
         if src_str[0] in '-': NotImplementedErr('negative numbers') 
+        if src_str[0] == ')': MismatchedParenthesesErr('(', 1)
         if src_str[0] == '+': 
             src_str = src_str.replace('+', '', 1)
             src_str = self.is_invalid(src_str)
 
-        # op_count = 0 #open parenthesis 
-        # cp_count = 0 #close parenthesis 
+        op_count = 0 #open parenthesis 
+        cp_count = 0 #close parenthesis 
         for idx, c in enumerate(src_str):
             next_c = src_str[idx+1] if idx+1 < len(src_str) else None
 
@@ -64,20 +65,18 @@ class Lexer:
                 NotImplementedErr('negative numbers')
             if c == "/" and next_c == '0':
                 NotSupportedErr('zero division')
-            if c == '(' or c == ')':
-                NotImplementedErr('parentheses')
 
-            # support for parentheses to be implemented yet
-            # if c == ")" and next_c == "(": 
-                # ParenthesesErr('operator', idx, src_str)
-            # if c == "(" and next_c == ")":
-                # ParenthesesErr('expression', idx, src_str)
+            if c == ")" and next_c == "(": 
+                ParenthesesErr('operator', idx, src_str)
+            if c == "(" and next_c == ")":
+                ParenthesesErr('expression', idx, src_str)
 
-            # if c == "(": op_count += 1
-            # elif c == ")": cp_count += 1
+            if c == "(": op_count += 1
+            elif c == ")": cp_count += 1
 
-        # parenthesis = "(" if op_count > cp_count else ")"
-        # amount = op_count - cp_count if op_count > cp_count else cp_count - op_count 
-        # if a != b: MismatchedParenthesesError(parenthesis, amount)
+        if op_count != cp_count:
+            parenthesis = ")" if op_count > cp_count else "("
+            amount = op_count - cp_count if (op_count > cp_count) else cp_count - op_count 
+            MismatchedParenthesesErr(parenthesis, amount)
         return src_str
 
