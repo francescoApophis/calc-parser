@@ -6,6 +6,7 @@ import sys
 
 class Parser:
     def __init__(self, src_str:str, flag: str) -> None:
+        self.src_str = src_str
         self.tokens:list = Lexer(src_str).tokens
         self.counter:int = 0
         self.start(flag)
@@ -38,7 +39,6 @@ class Parser:
             print('result from ast:', self.calc_from_ast(tree))
 
 
-
     def calc_prec(self, op: str) -> int: # get precedence of operator
         if op == '+' or op == '-':
             return 1
@@ -63,6 +63,8 @@ class Parser:
         return None 
         
     def calc(self, lhs:int, op:str, rhs:int) -> int:
+        print(lhs, op, rhs)
+
         if op == '+':
             return lhs + rhs
         elif op == '-':
@@ -81,6 +83,11 @@ class Parser:
 
         
     def parse_and_calc(self, lhs:str, min_prec:int = 0) -> int:
+        if lhs == '(':
+            lhs = self.parse_primary()
+            self.increment_counter()
+            lhs = self.parse_and_calc(lhs)
+
         nt = self.peek()
 
         while nt is not None and self.is_oper(nt) and self.calc_prec(nt) >= min_prec:
@@ -89,12 +96,28 @@ class Parser:
             rhs = self.parse_primary()
             self.increment_counter()
             nt = self.peek()
-            
-            # get result of the operation ahead *FIRST* if the the operator has higher precedence
-            while nt is not None and self.is_oper(nt) and self.calc_prec(nt) > self.calc_prec(op):
-                new_min_prec =  self.calc_prec(op) + 1 if self.calc_prec(nt) > self.calc_prec(op) else 0
-                rhs = self.parse_and_calc(rhs, new_min_prec)
+
+            if rhs == '(':
+                rhs = self.parse_primary()
+                self.increment_counter()
+                rhs = self.parse_and_calc(rhs, 0)
                 nt = self.peek()
+
+            while nt is not None: 
+                if self.is_oper(nt):
+                    if self.calc_prec(nt) > self.calc_prec(op):
+                        new_min_prec =  self.calc_prec(op) + 1 if self.calc_prec(nt) > self.calc_prec(op) else 0
+                        rhs = self.parse_and_calc(rhs, new_min_prec)
+                        nt = self.peek()
+                    else:
+                        break
+                elif nt == ')':
+                    min_prec = 100000 
+                    self.increment_counter()
+                    nt = self.peek()
+                    break
+                else:
+                    break
             
             lhs = int(lhs) if isinstance(lhs, str) else lhs
             rhs = int(rhs) if isinstance(rhs, str) else rhs
