@@ -40,7 +40,11 @@ class ParenthesesErr(Err):
         self.msg = f"No {what} between parentheses at index: {idx}\n'{expr}'\n{arrow}"
         super().__init__(self.msg)
 
-class MismatchedParentheses(Err):
+class MismatchedParenthesesErr(Err):
     def __init__(self, parenthesis: str, amount:int) -> None:
-        self.msg = f"Mismatched  parenthesis, {amount} too many '{parenthesis}'"
+        self.msg = f"Mismatched parenthesis, {amount} missing '{parenthesis}' parenthesis"
         super().__init__(self.msg)
+
+
+
+
