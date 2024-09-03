@@ -1,5 +1,5 @@
 from lexer import Lexer
-from typing import Union
+from typing import Union, Tuple
 from errors import *
 import sys
 
@@ -9,16 +9,17 @@ class Parser:
         self.src_str = src_str
         self.tokens:list = Lexer(src_str).tokens
         self.counter:int = 0
-        self.start(flag)
+        # self.start(flag)
 
     def start(self, flag: str):
         # calculate result from string
         if flag == '-c':
-            print('result:', self.parse_and_calc(self.tokens[0]))
+            return self.parse_and_calc(self.tokens[0])
 
         # generate a tree 
         elif flag == '-t':
-            print('tree:', self.gen_ast(self.tokens[0]))
+            t = self.gen_ast(self.tokens[0])
+            return t 
 
         # calculate result from string and generate a tree 
         elif flag == '-tc':
@@ -63,16 +64,26 @@ class Parser:
         return None 
         
     def calc(self, lhs:int, op:str, rhs:int) -> int:
-        print(lhs, op, rhs)
-
         if op == '+':
-            return lhs + rhs
+            res = lhs + rhs
         elif op == '-':
-            return lhs - rhs
+            res = lhs - rhs
         elif op == '*':
-            return lhs * rhs
+            res = lhs * rhs
         elif op == '/':
-            return lhs / rhs
+            res = lhs / rhs
+        
+        print(f"{round(lhs, 2)} {op} {round(rhs, 2)} = {round(res, 2)}")
+        return res
+
+        # if op == '+':
+            # return lhs + rhs
+        # elif op == '-':
+            # return lhs - rhs
+        # elif op == '*':
+            # return lhs * rhs
+        # elif op == '/':
+            # return lhs / rhs
 
     def calc_from_ast(self, node:dict) -> int:
         lhs = node['lhs'] if not isinstance(node['lhs'], dict) else self.calc_from_ast(node['lhs'])
@@ -80,50 +91,53 @@ class Parser:
         op = node['op']
 
         return self.calc(lhs, op, rhs)
-
-        
-    def parse_and_calc(self, lhs:str, min_prec:int = 0) -> int:
-        if lhs == '(':
-            lhs = self.parse_primary()
-            self.increment_counter()
-            lhs = self.parse_and_calc(lhs)
-
+    
+    def parse_and_calc(self, lhs:str, min_prec:int = 0, level:int = 0) -> int:
         nt = self.peek()
 
-        while nt is not None and self.is_oper(nt) and self.calc_prec(nt) >= min_prec:
-            op = nt 
-            self.increment_counter()
-            rhs = self.parse_primary()
-            self.increment_counter()
-            nt = self.peek()
-
-            if rhs == '(':
-                rhs = self.parse_primary()
+        while nt is not None:
+            if nt == '(':
                 self.increment_counter()
-                rhs = self.parse_and_calc(rhs, 0)
+                lhs = self.parse_and_calc(nt, 0, level + 1)
+                nt = self.peek() 
+            if nt == ')':
+                self.increment_counter()
                 nt = self.peek()
 
-            while nt is not None: 
-                if self.is_oper(nt):
-                    if self.calc_prec(nt) > self.calc_prec(op):
-                        new_min_prec =  self.calc_prec(op) + 1 if self.calc_prec(nt) > self.calc_prec(op) else 0
-                        rhs = self.parse_and_calc(rhs, new_min_prec)
-                        nt = self.peek()
-                    else:
-                        break
-                elif nt == ')':
-                    min_prec = 100000 
+            elif nt is not None and nt.isdigit():
+                lhs = nt
+                self.increment_counter()
+                nt = self.peek()
+
+            elif self.is_oper(nt):
+                if self.calc_prec(nt) >= min_prec:
+                    op = nt 
+                    self.increment_counter()
+                    rhs = self.parse_primary()
                     self.increment_counter()
                     nt = self.peek()
-                    break
+
+                    if rhs == '(':
+                        rhs = self.parse_and_calc(nt, 0, level + 1)
+                        self.increment_counter()
+                        nt = self.peek()
+
+                    while nt is not None and self.is_oper(nt) and self.calc_prec(nt) > self.calc_prec(op):
+                        new_min_prec =  self.calc_prec(op) + 1 if self.calc_prec(nt) > self.calc_prec(op) else 0
+                        rhs = self.parse_and_calc(rhs, new_min_prec, level)
+                        nt = self.peek()
+
+                    lhs = int(lhs) if isinstance(lhs, str) else lhs
+                    rhs = int(rhs) if isinstance(rhs, str) else rhs
+                    lhs = self.calc(lhs, op, rhs)
+
+                    if nt == ')' and level > 0:
+                       return lhs 
                 else:
                     break
-            
-            lhs = int(lhs) if isinstance(lhs, str) else lhs
-            rhs = int(rhs) if isinstance(rhs, str) else rhs
-            lhs = self.calc(lhs, op, rhs)
+            else:
+                break
         return lhs
-
 
     def gen_ast(self, lhs:Union[str, dict], min_prec:int = 0) -> dict:
         nt = self.peek()
@@ -147,6 +161,7 @@ class Parser:
             }
 
         return lhs 
+
 
 
 def print_descr():
