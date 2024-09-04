@@ -1,4 +1,5 @@
 from errors import * 
+import re
 
 # source-str --> Lexer (creates tokens) --> Creation of tree --> Tree parsing
 
@@ -6,12 +7,17 @@ class Lexer:
     # get tokens
     # recognize which tokens mark the beginning of new tokens
 
+    # ADD TYPING
     def __init__(self, src_str):
         self.src_str = self.is_invalid(src_str) 
-        self.tokens = []
-        self.tokenize(self.src_str)
+        self.tokens = self.tokenize()
 
-    def tokenize(self, src_str, idx = 0):
+    def tokenize(self):
+        tokenized = re.split('(\+|\-|\*|\/|\(|\))', self.src_str)
+        tokenized = list(filter(None, tokenized))
+        return tokenized
+
+    def tokenize_recurs(self, src_str, idx = 0):
         if len(src_str) == 1:
             self.tokens.append(src_str)
             return
@@ -25,10 +31,10 @@ class Lexer:
                 self.tokens[-1] += curr_val
             else:
                 self.tokens.append(curr_val)
-            self.tokenize(src_str, idx + 1)
+            self.tokenize_recurs(src_str, idx + 1)
         else:
             self.tokens.append(curr_val) # operator or parenthesis
-            self.tokenize(src_str[idx+1:], 0)
+            self.tokenize_recurs(src_str[idx+1:], 0)
 
     def is_digit(self, value):
         # they indicate start of new number
@@ -36,7 +42,9 @@ class Lexer:
        
     def is_invalid(self, src_str):
         src_str = src_str.replace(" ", "")   
-
+        # ERROR: replace whitespace will consider 
+        # valid '12 3 + 2' as '123 + 2'
+        
         if len(src_str) <= 2 or (len(src_str) <= 3 and src_str[0] == '-'): 
             NotEnoughErr('operands/operators')
 
@@ -52,6 +60,10 @@ class Lexer:
 
         op_count = 0 #open parenthesis 
         cp_count = 0 #close parenthesis 
+
+        # this needs to change because (320482934) is a valid expression
+        # but I don't know, maybe I could keep it 
+
         for idx, c in enumerate(src_str):
             next_c = src_str[idx+1] if idx+1 < len(src_str) else None
 
