@@ -46,21 +46,18 @@ def gen_rand_exprs(max_opers_in_sub_expr = 5, nesting_level = 1, curr_level = 1)
     return expr
 
 
-# @unittest.skip('not needed at the moment')
+# @unittest.skip('not needed')
 class TestRandGenExpressions(unittest.TestCase):
     def test_rand_expressions_are_correct(self):
-        for i in range(10 * 10):
+        for i in range(10 * 1000):
             self.assertTrue(Lexer.is_invalid(gen_rand_exprs(nesting_level = randint(1, 10))))
         
 
 class TestParser(unittest.TestCase):
-    def test_expressions_are_correct(self):
-        exprs = []
+    def test_gen_trees_from_epxrs(self):
         for i in range(10 * 1000):
-            exprs.append(gen_rand_exprs(nesting_level = randint(1, 10)))
-
-        for expr in exprs:
-            parser = Parser(expr, '-c')
+            expr = gen_rand_exprs(nesting_level = randint(1, 10))
+            parser = Parser(expr)
             py_eval_zero_div_err, parser_zero_div_err = None, None
             py_result, parser_result = None, None
 
@@ -68,15 +65,40 @@ class TestParser(unittest.TestCase):
                 py_result = eval(expr)
             except ZeroDivisionError as inst: 
                 py_eval_zero_div_err = inst.args
+            try: 
+                parser_result = parser.calc_from_tree()
+            except ZeroDivisionError as inst: 
+                parser_zero_div_err = inst.args
+
+            self.assertEqual(py_eval_zero_div_err, parser_zero_div_err)
+            self.assertEqual(parser_result, py_result)
+        
+    def test_exprs(self):
+        for i in range(10 * 1000):
+            expr = gen_rand_exprs(nesting_level = randint(1, 10))
+            parser = Parser(expr)
+            py_eval_zero_div_err, parser_zero_div_err = None, None
+            py_result, parser_result = None, None
 
             try: 
-                parser_result = parser.start("-c")
+                py_result = eval(expr)
+            except ZeroDivisionError as inst: 
+                py_eval_zero_div_err = inst.args
+            try: 
+                parser_result = parser.parse_and_calc()
             except ZeroDivisionError as inst: 
                 parser_zero_div_err = inst.args
 
             self.assertEqual(py_eval_zero_div_err, parser_zero_div_err)
             self.assertEqual(parser_result, py_result)
 
+def suite():
+    suite = unittest.TestSuite()
+    suite.addTest(TestParser('test_exprs'))
+    suite.addTest(TestParser('test_gen_trees_from_epxrs'))
+    return suite
+
+runner = unittest.TextTestRunner(verbosity=3)
+runner.run(suite())
+
 # unittest.main(verbosity=3)
-
-
