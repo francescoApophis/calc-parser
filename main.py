@@ -10,37 +10,6 @@ class Parser:
         self.tokens: List[str] = Lexer(expr).tokens
         self.counter = 0
 
-    def start(self, flag: str): 
-        if flag == '-c':
-            result_from_str = self.parse_and_calc(self.tokens[0])
-            self.counter = 0
-            return result_from_str
-
-        if flag == '-t':
-            tree = self.gen_tree(self.tokens[0])
-            self.counter = 0
-            return tree
-
-        if flag == '-tc':
-            result_from_str = self.parse_and_calc(self.tokens[0])
-            self.counter = 0
-            tree = self.gen_tree(self.tokens[0])
-            self.couner = 0
-            return result_from_str, tree
-
-        if flag == '-ct':
-            result_from_tree = calc_from_tree(self.gen_tree(self.tokens[0]))
-            return result_from_tree
-
-        if flag == '-all':
-            tree = self.gen_tree(self.tokens[0])
-            self.counter = 0
-            result_from_str =  self.parse_and_calc(self.tokens[0])
-            self.counter = 0
-            result_from_tree = self.calc_from_tree(tree)
-            return result_from_str, result_from_tree, tree
-
-
     def calc_prec(self, op: str) -> int: # get precedence of operator
         if op == '+' or op == '-':
             return 1
@@ -75,14 +44,16 @@ class Parser:
             res = lhs / rhs
         return res
 
-    def calc_from_tree(self, node:dict) -> int:
+    def calc_from_tree(self, node: Union[dict, None] = None) -> int:
+        node = self.gen_tree() if node is None else node
         lhs = node['lhs'] if not isinstance(node['lhs'], dict) else self.calc_from_tree(node['lhs'])
         rhs = node['rhs'] if not isinstance(node['rhs'], dict) else self.calc_from_tree(node['rhs'])
         op = node['op']
 
         return self.calc(lhs, op, rhs)
     
-    def gen_tree(self, lhs:Union[str, dict], min_prec:int = 0) -> dict:
+    def gen_tree(self, lhs:Union[str, dict, None] = None, min_prec:int = 0) -> dict:
+        lhs = self.tokens[0] if lhs is None else lhs
         nt = self.peek()
 
         while nt is not None and self.is_oper(nt) and self.calc_prec(nt) >= min_prec:
@@ -105,9 +76,9 @@ class Parser:
 
         return lhs 
 
-    def parse_and_calc(self, lhs:str, min_prec:int = 0, level:int = 0) -> int:
+    def parse_and_calc(self, lhs:Union[str,None] = None, min_prec:int = 0, level:int = 0) -> int:
+        lhs = self.tokens[0] if lhs is None else lhs
         nt = self.peek()
-
         while nt is not None:
             if nt == '(' or (nt is not None and nt.isdigit()):
                 self.increment_counter()
@@ -146,61 +117,85 @@ class Parser:
         return lhs
 
 
-def print_descr():
-    print(''' Small parser for simple math expressions.
-    Supported:
-        - addition, subtraction, multiplication and division
-    Soon to be implemented:
-        - negative and decimal numbers
-        - parentheses 
-        - exponentiation
-    ''')
+class Main:
+    valid_flags = ['-c', '-t', '-tc', '-ct', '-all', '-h']
 
+    def __init__(self):
+        self.execute()
 
-def print_usage(help: Union[bool, None] = None):
-    if help:
-        print_descr()
-    print('''Usage: 
+    def execute(self):
+        argv = self.check_argv_count(sys.argv[1:])
+        flag = self.check_valid_flag(argv[0])
+
+        if flag == '-h':
+            self.print_usage(descr = True)
+            exit(0)
+        
+        expr = argv[1]
+        parser = Parser(expr)
+
+        if flag == '-c':
+            print('result:', parser.parse_and_calc())
+        if flag == '-t':
+            print('tree:', parser.gen_tree())
+        if flag == '-tc':
+            print('result:', parser.parse_and_calc())
+            parser.counter = 0
+            print('tree:', parser.gen_tree())
+        if flag == '-ct':
+            print('result_from_tree:', parser.calc_from_tree())
+        if flag == '-all':
+            print('result:' ,parser.parse_and_calc())
+            parser.counter = 0
+            print('result_from_tree:', parser.calc_from_tree())
+            parser.counter = 0
+            tree = parser.gen_tree()
+            parser.counter = 0
+            print('tree:', tree)
+        exit(0)
+
+    def check_argv_count(self, argv):
+        if len(argv) > 2:
+            self.error_out('too many arguments')
+        if len(argv) < 1 or len(argv) == 1 and argv[0] != '-h':
+            self.error_out('too few arguments')
+        return argv
+
+    def check_valid_flag(self, flag):
+        if flag not in Main.valid_flags:
+            self.error_out('invalid \'{flag}\' flag')
+        return flag
+
+    def error_out(self, msg: str):
+        print(f'\nERROR: {msg}\n')
+        self.print_usage()
+        exit(1)
+
+    def print_usage(self, descr:bool = False):
+        if descr:
+            print('''Small parser for simple math expressions.
+Supported:
+    - addition, subtraction, multiplication, division, parentheses
+Soon to be implemented:
+    - negative and decimal numbers
+    - exponentiation
+        ''')
+
+        print('''Usage: 
     python3 main.py <flag> <expr>
     python3 main.py <flag> '<expr>' (to use spacing inside the expression)
-    
-    flags:
-        -c   calculate and print result from string expression
-        -t   generate and print tree from expression 
-        -tc  both previous flags
-        -ct  calculate and print result from tree expression (mainly for 
-             debugging tree)
-        -all all commands at the same time
-    ''')
+
+flags:
+    -c   calculate and print result from string expression
+    -t   generate and print tree from expression 
+    -tc  both previous flags
+    -ct  calculate and print result from tree expression (mainly for 
+         debugging tree)
+    -all all commands at the same time
+        ''')
 
 
-if __name__ == '__main__':
-    argv = sys.argv[1:]
+if __name__ == '__main__':  
+    main = Main()
 
-    if not argv:
-        print('ERROR: too few arguments')
-        print_usage()
-        exit(1)
 
-    if len(argv) > 2:
-        print('ERROR: too many arguments')
-        print_usage()
-        exit(1)
-
-    flag = argv[0]
-
-    if flag == '-h':
-        print_usage(True)
-        exit(0)
-    if flag in ['-c', '-t', '-tc', '-ct', '-all']:
-        if len(argv) == 2: 
-            expr = argv[1]
-            parser = Parser(expr, flag)
-        else:
-            print('ERROR: missing expression')
-            print_usage()
-            exit(1)
-    else:
-        print(f'ERROR: invalid \'{flag}\' flag')
-        print_usage()
-        exit(1)
