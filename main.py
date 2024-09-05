@@ -1,43 +1,44 @@
 from lexer import Lexer
-from typing import Union, Tuple
+from typing import Union, Tuple, List
 from errors import *
 import sys
 
 
 class Parser:
-    def __init__(self, src_str:str, flag: str) -> None:
-        self.src_str = src_str
-        self.tokens:list = Lexer(src_str).tokens
-        self.counter:int = 0
-        # self.start(flag)
+    def __init__(self, expr:str) -> None:
+        self.expr = expr
+        self.tokens: List[str] = Lexer(expr).tokens
+        self.counter = 0
 
-    def start(self, flag: str):
-        # calculate result from string
+    def start(self, flag: str): 
         if flag == '-c':
-            return self.parse_and_calc(self.tokens[0])
-
-        # generate a tree 
-        elif flag == '-t':
-            t = self.gen_ast(self.tokens[0])
-            return t 
-
-        # calculate result from string and generate a tree 
-        elif flag == '-tc':
-            print('result:', self.parse_and_calc(self.tokens[0]))
+            result_from_str = self.parse_and_calc(self.tokens[0])
             self.counter = 0
-            print('tree:', self.gen_ast(self.tokens[0]))
+            return result_from_str
 
-        # calculate result from ast 
-        elif flag == '-ct':
-            print('result from ast:', calc_from_ast(self.gen_ast(self.tokens[0])))
+        if flag == '-t':
+            tree = self.gen_tree(self.tokens[0])
+            self.counter = 0
+            return tree
 
-        elif flag == '-all':
-            tree = self.gen_ast(self.tokens[0])
-            print('tree:', tree)
+        if flag == '-tc':
+            result_from_str = self.parse_and_calc(self.tokens[0])
             self.counter = 0
-            print('result from str:', self.parse_and_calc(self.tokens[0]))
+            tree = self.gen_tree(self.tokens[0])
+            self.couner = 0
+            return result_from_str, tree
+
+        if flag == '-ct':
+            result_from_tree = calc_from_tree(self.gen_tree(self.tokens[0]))
+            return result_from_tree
+
+        if flag == '-all':
+            tree = self.gen_tree(self.tokens[0])
             self.counter = 0
-            print('result from ast:', self.calc_from_ast(tree))
+            result_from_str =  self.parse_and_calc(self.tokens[0])
+            self.counter = 0
+            result_from_tree = self.calc_from_tree(tree)
+            return result_from_str, result_from_tree, tree
 
 
     def calc_prec(self, op: str) -> int: # get precedence of operator
@@ -74,14 +75,14 @@ class Parser:
             res = lhs / rhs
         return res
 
-    def calc_from_ast(self, node:dict) -> int:
-        lhs = node['lhs'] if not isinstance(node['lhs'], dict) else self.calc_from_ast(node['lhs'])
-        rhs = node['rhs'] if not isinstance(node['rhs'], dict) else self.calc_from_ast(node['rhs'])
+    def calc_from_tree(self, node:dict) -> int:
+        lhs = node['lhs'] if not isinstance(node['lhs'], dict) else self.calc_from_tree(node['lhs'])
+        rhs = node['rhs'] if not isinstance(node['rhs'], dict) else self.calc_from_tree(node['rhs'])
         op = node['op']
 
         return self.calc(lhs, op, rhs)
     
-    def gen_ast(self, lhs:Union[str, dict], min_prec:int = 0) -> dict:
+    def gen_tree(self, lhs:Union[str, dict], min_prec:int = 0) -> dict:
         nt = self.peek()
 
         while nt is not None and self.is_oper(nt) and self.calc_prec(nt) >= min_prec:
@@ -93,7 +94,7 @@ class Parser:
 
             while nt is not None and self.is_oper(nt) and self.calc_prec(nt) > self.calc_prec(op):
                 new_min_prec =  self.calc_prec(op) + 1 if self.calc_prec(nt) > self.calc_prec(op) else 0
-                rhs = self.gen_ast(rhs, new_min_prec)
+                rhs = self.gen_tree(rhs, new_min_prec)
                 nt = self.peek()
 
             lhs = {
