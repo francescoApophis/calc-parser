@@ -35,7 +35,8 @@ class Lexer:
         # they indicate start of new number
         return value not in ["+", "-", "*", "/", "(", ")", "^"] 
        
-    def is_invalid(self, expr:str) -> str:
+    @staticmethod
+    def is_invalid(expr:str) -> str:
         expr = expr.replace(" ", "")   
         # ERROR: replace whitespace will consider 
         # valid '12 3 + 2' as '123 + 2'
@@ -58,7 +59,6 @@ class Lexer:
 
         # this needs to change because (320482934) is a valid expression
         # but I don't know, maybe I could keep it 
-
         for idx, c in enumerate(expr):
             next_c = expr[idx+1] if idx+1 < len(expr) else None
 
