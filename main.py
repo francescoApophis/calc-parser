@@ -61,7 +61,11 @@ class Main:
         if descr:
             print('''Small parser for simple math expressions.
 Supported:
-    - addition, subtraction, multiplication, division, parentheses
+    - addition
+    - subtraction,
+    - multiplication
+    - division
+    - parentheses
 Soon to be implemented:
     - negative and decimal numbers
     - exponentiation
