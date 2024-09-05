@@ -13,10 +13,10 @@ Supported:
 - [x] subtraction, 
 - [x] multiplication
 - [x] division
+- [x] parentheses 
 
 Soon to be implemented:
 - [ ] negative and decimal numbers
-- [ ] parentheses 
 - [ ] exponentiation
 
 ## Usage
