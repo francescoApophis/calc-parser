@@ -50,29 +50,47 @@ class Parser:
 
         return self.calc(lhs, op, rhs)
     
-    def gen_tree(self, lhs:Union[str, dict, None] = None, min_prec:int = 0) -> dict:
+    def gen_tree(self, lhs:Union[str, dict, None] = None, min_prec:int = 0, level:int = 0) -> dict:
         lhs = self.tokens[0] if lhs is None else lhs
         nt = self.peek()
-
-        while nt is not None and self.is_oper(nt) and self.calc_prec(nt) >= min_prec:
-            op = nt 
-            self.increment_counter()
-            rhs = self.parse_primary()
-            self.increment_counter()
-            nt = self.peek()
-
-            while nt is not None and self.is_oper(nt) and self.calc_prec(nt) > self.calc_prec(op):
-                new_min_prec =  self.calc_prec(op) + 1 if self.calc_prec(nt) > self.calc_prec(op) else 0
-                rhs = self.gen_tree(rhs, new_min_prec)
+        while nt is not None:
+            if nt == '(' or (nt is not None and nt.isdigit()):
+                self.increment_counter()
+                lhs = self.gen_tree(nt, 0, level + 1)
+                self.increment_counter()
                 nt = self.peek()
 
-            lhs = {
-                'lhs': int(lhs) if type(lhs) == str else lhs,
-                'op': op, 
-                'rhs': int(rhs) if type(rhs) == str else rhs,
-            }
+            elif nt == ')':
+                if level > 0: return lhs
+                self.increment_counter()
+                nt = self.peek()
+    
+            elif self.is_oper(nt) and self.calc_prec(nt) >= min_prec:
+                op = nt
+                self.increment_counter()
+                rhs = self.parse_primary()
+                self.increment_counter()
+                nt = self.peek()
 
-        return lhs 
+                if rhs == '(':
+                    self.increment_counter()
+                    rhs = self.gen_tree(nt, 0, level + 1)
+                    self.increment_counter()
+                    nt = self.peek()
+
+                while nt is not None and self.is_oper(nt) and self.calc_prec(nt) > self.calc_prec(op):
+                    new_min_prec =  self.calc_prec(op) + 1 if self.calc_prec(nt) > self.calc_prec(op) else 0
+                    rhs = self.gen_tree(rhs, new_min_prec, level)
+                    nt = self.peek()
+
+                lhs = {
+                    'lhs': int(lhs) if type(lhs) == str else lhs,
+                    'op': op, 
+                    'rhs': int(rhs) if type(rhs) == str else rhs,
+                }
+            else:
+                break
+        return lhs
 
     def parse_and_calc(self, lhs:Union[str,None] = None, min_prec:int = 0, level:int = 0) -> int:
         lhs = self.tokens[0] if lhs is None else lhs
