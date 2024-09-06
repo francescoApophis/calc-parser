@@ -32,14 +32,17 @@ class Parser:
         return None 
         
     def calc(self, lhs:int, op:str, rhs:int) -> int:
-        if op == '+':
-            res = lhs + rhs
-        elif op == '-':
-            res = lhs - rhs
-        elif op == '*':
-            res = lhs * rhs
-        elif op == '/':
-            res = lhs / rhs
+        try:
+            if op == '+':
+                res = lhs + rhs
+            elif op == '-':
+                res = lhs - rhs
+            elif op == '*':
+                res = lhs * rhs
+            elif op == '/':
+                res = lhs / rhs
+        except ZeroDivisionError:
+            res = 'undefined'
         return res
 
     def calc_from_tree(self, node: Union[dict, None] = None) -> int:
@@ -48,11 +51,15 @@ class Parser:
         rhs = node['rhs'] if not isinstance(node['rhs'], dict) else self.calc_from_tree(node['rhs'])
         op = node['op']
 
+        if lhs == 'undefined': return lhs
+        if rhs == 'undefined': return rhs
+
         return self.calc(lhs, op, rhs)
     
     def gen_tree(self, lhs:Union[str, dict, None] = None, min_prec:int = 0, level:int = 0) -> dict:
         lhs = self.tokens[0] if lhs is None else lhs
         nt = self.peek()
+
         while nt is not None:
             if nt == '(' or (nt is not None and nt.isdigit()):
                 self.increment_counter()
@@ -96,6 +103,9 @@ class Parser:
         lhs = self.tokens[0] if lhs is None else lhs
         nt = self.peek()
         while nt is not None:
+            if lhs == 'undefined':
+                return lhs
+
             if nt == '(' or (nt is not None and nt.isdigit()):
                 self.increment_counter()
                 lhs = self.parse_and_calc(nt, 0, level + 1)
@@ -124,6 +134,9 @@ class Parser:
                     new_min_prec =  self.calc_prec(op) + 1 if self.calc_prec(nt) > self.calc_prec(op) else 0
                     rhs = self.parse_and_calc(rhs, new_min_prec, level)
                     nt = self.peek()
+
+                if rhs == 'undefined':
+                    return rhs
 
                 lhs = int(lhs) if isinstance(lhs, str) else lhs
                 rhs = int(rhs) if isinstance(rhs, str) else rhs
